@@ -33,7 +33,6 @@ public class Frame extends JFrame {
         addressField = new PlaceHolderTextField();
         addressField.setPlaceHolder("Server address");
         addressField.setBounds(0, 0, 200, 20);
-        addressField.setText("redstonneur1256.ml");
         add(addressField);
 
         connectButton = new JButton("Connect");
