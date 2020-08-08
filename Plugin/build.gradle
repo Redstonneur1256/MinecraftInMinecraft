@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'fr.redstonneur1256'
+version '1.0'
+
+sourceSets.main.resources.srcDirs = ["res/"]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile project(":Common")
+    compile remoteDownload("https://cdn.getbukkit.org/spigot/spigot-1.12.2.jar", "spigot-1.12.2.jar")
+}

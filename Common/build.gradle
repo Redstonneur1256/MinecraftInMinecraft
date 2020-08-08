@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+
+group 'fr.redstonneur1256'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile remoteDownload("https://github.com/Redstonneur1256/RedUtilities/releases/download/1.0/RedUtilities.jar", "RedUtilities.jar")
+}
