@@ -16,6 +16,7 @@ public class Frame extends JFrame {
     private JCheckBox sendData;
     private JButton sendOneFrame;
     private JSpinner updatesSecond;
+    private JLabel infoLabel;
     public Frame(MinecraftClient client) {
         this.client = client;
 
@@ -75,7 +76,22 @@ public class Frame extends JFrame {
         updatesSecond.setValue(5);
         add(updatesSecond);
 
+        JCheckBox useCache = new JCheckBox("Use color cache");
+        useCache.setSelected(true);
+        useCache.addChangeListener(event -> client.getPalette().useCache(useCache.isSelected()));
+        useCache.setBounds(300, 20, 100, 20);
+        add(useCache);
 
+        JButton cacheInformation = new JButton("...");
+        cacheInformation.setBorderPainted(false);
+        cacheInformation.setBounds(400, 20, 20, 20);
+        cacheInformation.addActionListener(event -> JOptionPane.showMessageDialog(this, "If selected, the application will use more memory but lower processor, else the application will have an high processor usage but low memory usage", "Information", JOptionPane.INFORMATION_MESSAGE));
+        add(cacheInformation);
+
+
+        infoLabel = new JLabel();
+        infoLabel.setBounds(300, 0, 200, 20);
+        add(infoLabel);
 
         WindowMover mover = new WindowMover(this);
         mover.apply();
@@ -103,7 +119,7 @@ public class Frame extends JFrame {
         }
     }
 
-    private void enableFields(boolean connected) {
+    public void enableFields(boolean connected) {
         addressField.setEnabled(!connected);
         sendData.setEnabled(connected);
         sendOneFrame.setEnabled(connected);
@@ -122,6 +138,10 @@ public class Frame extends JFrame {
         }
 
         graphics.dispose();
+    }
+
+    public void setInfoText(String text) {
+        infoLabel.setText(text);
     }
 
 }

@@ -34,13 +34,14 @@ public class MinecraftClient {
     private Thread sendingThread;
     private boolean sendingData;
     private long sendingRate;
+    private long sendedBytes;
 
     private MinecraftClient(String[] args) throws Exception {
         Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 
         frame = new Frame(this);
         robot = new Robot();
-        palette = new Palette<BlockData>().useCache(true); // TODO: Add option to choose if the palette use memory or cpu
+        palette = new Palette<BlockData>().useCache(true);
         screenRectangle = new Rectangle(0, 0, size.width, size.height);
 
         PaletteLoader paletteLoader = new PaletteLoader(palette);
@@ -137,6 +138,9 @@ public class MinecraftClient {
         output.writeInt(compressed.length);
         output.write(compressed);
         output.flush();
+
+        sendedBytes += 4; // Compressed data length
+        sendedBytes += compressed.length;
     }
 
     private void receiveData() {
@@ -151,8 +155,10 @@ public class MinecraftClient {
                         break;
                     case 1:
                         String message = input.readUTF();
-                        System.out.println("Server requested disconnect for reason: " + message);
                         disconnect();
+                        JOptionPane.showMessageDialog(frame, message, "Disconnected:", JOptionPane.INFORMATION_MESSAGE);
+                        System.out.println("Server requested disconnect for reason: " + message);
+                        frame.enableFields(false);
                         break;
                 }
             }
@@ -179,8 +185,9 @@ public class MinecraftClient {
                 }
                 if(timer + 1000 < System.currentTimeMillis()) { // One second
                     timer += 1000;
-                    // TODO: Display ticks on frame
+                    frame.setInfoText(ticks + " FPS (" + Utils.sizeFormat(sendedBytes, "bps") + ")");
                     ticks = 0;
+                    sendedBytes = 0;
                 }
             }
         } catch (Exception exception) {
@@ -188,5 +195,6 @@ public class MinecraftClient {
         }
     }
 
+    public Palette<BlockData> getPalette() { return palette; }
 
 }
