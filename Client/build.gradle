@@ -1,9 +1,14 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group 'fr.redstonneur1256'
 version '1.0'
+
+shadowJar {
+    archiveFileName = "Client.jar"
+}
 
 repositories {
     mavenCentral()

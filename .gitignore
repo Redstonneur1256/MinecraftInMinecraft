@@ -1,5 +1,14 @@
 # Project exclude paths
 /.gradle/
+
 /build/
-/Common/build/
 /out/
+
+/Client/build/
+/Client/out/
+
+/Common/build/
+/Common/out/
+
+/Plugin/build/
+/Plugin/out/
