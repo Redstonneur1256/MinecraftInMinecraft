@@ -18,7 +18,7 @@ dependencies {
 }
 
 ext.remoteDownload = { String url, String name ->
-    File file = new File("$buildDir/libs/${name}");
+    File file = new File("$buildDir/lib/${name}");
     if (!file.exists()) {
         file.parentFile.mkdirs()
         println "${name} not found, downloading it from ${url}, please wait..."

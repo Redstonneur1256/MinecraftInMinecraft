@@ -1,6 +1,7 @@
 package fr.redstonneur1256;
 
 import fr.redstonneur1256.commands.ConfigCommand;
+import fr.redstonneur1256.redutilities.io.compression.Compression;
 import fr.redstonneur1256.utils.BlockData;
 import fr.redstonneur1256.utils.SocketAcceptThread;
 import org.bukkit.Bukkit;
@@ -28,6 +29,9 @@ public class MinecraftInMinecraft extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Compression.setMethod(Compression.Method.ZLIB);
+        Compression.setThreadSafe(true); // Clients can be a bit glitchy, just to be safe.
+        Compression.setBufferSize(8129);
 
         saveDefaultConfig();
 
@@ -76,6 +80,7 @@ public class MinecraftInMinecraft extends JavaPlugin {
                 updateOrder.add(new Point(x, y));
             }
         }
+
         Point mapCenter = new Point(width / 2, height / 2);
         updateOrder.sort((pointOne, pointTwo) -> {
             double distanceOne = pointOne.distance(mapCenter);

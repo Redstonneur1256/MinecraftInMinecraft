@@ -3,8 +3,8 @@ package fr.redstonneur1256;
 import fr.redstonneur1256.redutilities.Utils;
 import fr.redstonneur1256.redutilities.graphics.ImageHelper;
 import fr.redstonneur1256.redutilities.graphics.Palette;
+import fr.redstonneur1256.redutilities.io.compression.Compression;
 import fr.redstonneur1256.utils.BlockData;
-import fr.redstonneur1256.utils.Compression;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +17,10 @@ public class MinecraftClient {
 
     public static void main(String[] args) throws Exception {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+        Compression.setMethod(Compression.Method.ZLIB);
+        Compression.setThreadSafe(false); // Application send with one thread
+        Compression.setBufferSize(8129);
 
         MinecraftClient client = new MinecraftClient(args);
     }
@@ -91,7 +95,7 @@ public class MinecraftClient {
         sendingData = false;
     }
 
-    public void sendOneFrame() throws IOException {
+    public void sendOneFrame() throws Exception {
         if(width == 0 || height == 0)
             return;
 
@@ -105,8 +109,8 @@ public class MinecraftClient {
         dataOutput.writeInt(height);
 
         Point location = MouseInfo.getPointerInfo().getLocation();
-        location.x = location.x / (capture.getWidth() / width);
-        location.y = location.y / (capture.getHeight() / height);
+        location.x /= ((double) capture.getWidth() / width);
+        location.y /= ((double) capture.getHeight() / height);
 
         BlockData[] type = new BlockData[width * height];
         for (int x = 0; x < width; x++) {
@@ -159,6 +163,8 @@ public class MinecraftClient {
                         JOptionPane.showMessageDialog(frame, message, "Disconnected:", JOptionPane.INFORMATION_MESSAGE);
                         System.out.println("Server requested disconnect for reason: " + message);
                         frame.enableFields(false);
+                        frame.getConnectButton().setText("Connect");
+                        frame.setInfoText("");
                         break;
                 }
             }

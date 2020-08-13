@@ -1,7 +1,7 @@
 package fr.redstonneur1256;
 
+import fr.redstonneur1256.redutilities.io.compression.Compression;
 import fr.redstonneur1256.utils.BlockData;
-import fr.redstonneur1256.utils.Compression;
 import fr.redstonneur1256.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;

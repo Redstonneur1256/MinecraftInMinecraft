@@ -6,7 +6,6 @@ import fr.redstonneur1256.redutilities.graphics.swing.PlaceHolderTextField;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 public class Frame extends JFrame {
 
@@ -57,7 +56,7 @@ public class Frame extends JFrame {
         sendOneFrame.addActionListener(event -> {
             try {
                 client.sendOneFrame();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -89,7 +88,7 @@ public class Frame extends JFrame {
         add(cacheInformation);
 
 
-        infoLabel = new JLabel();
+        infoLabel = new JLabel("");
         infoLabel.setBounds(300, 0, 200, 20);
         add(infoLabel);
 
@@ -143,5 +142,13 @@ public class Frame extends JFrame {
     public void setInfoText(String text) {
         infoLabel.setText(text);
     }
+
+    public MinecraftClient getClient() { return client; }
+    public PlaceHolderTextField getAddressField() { return addressField; }
+    public JButton getConnectButton() { return connectButton; }
+    public JCheckBox getSendData() { return sendData; }
+    public JButton getSendOneFrame() { return sendOneFrame; }
+    public JSpinner getUpdatesSecond() { return updatesSecond; }
+    public JLabel getInfoLabel() { return infoLabel; }
 
 }
