@@ -9,8 +9,6 @@ repositories {
     mavenCentral()
 }
 
-ext.redUtilitiesVersion = "1.1.1"
-
 dependencies {
     compile remoteDownload("https://github.com/Redstonneur1256/RedUtilities/releases/download/${redUtilitiesVersion}/RedUtilities.jar", "RedUtilities-${redUtilitiesVersion}.jar")
 }

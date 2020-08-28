@@ -9,21 +9,14 @@ import fr.redstonneur1256.utils.BlockData;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class MinecraftClient {
-
-    public static void main(String[] args) throws Exception {
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
-        Compression.setMethod(Compression.Method.ZLIB);
-        Compression.setThreadSafe(false); // Application send with one thread
-        Compression.setBufferSize(8129);
-
-        MinecraftClient client = new MinecraftClient(args);
-    }
 
     private Frame frame;
     private Robot robot;
@@ -43,7 +36,7 @@ public class MinecraftClient {
     private MinecraftClient(String[] args) throws Exception {
         Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 
-        frame = new Frame(this);
+        frame = new Frame(this, size.width, size.height);
         robot = new Robot();
         palette = new Palette<BlockData>().useCache(true);
         screenRectangle = new Rectangle(0, 0, size.width, size.height);
@@ -52,12 +45,22 @@ public class MinecraftClient {
         paletteLoader.loadPalette(new File("defaultPack")); // TODO: Add option to allow users to choose pack
     }
 
+    public static void main(String[] args) throws Exception {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+        Compression.setMethod(Compression.Method.zLib);
+        Compression.setThreadSafe(false);
+        Compression.setBufferSize(8129);
+
+        MinecraftClient client = new MinecraftClient(args);
+    }
+
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
 
     public void connect(String address, int port) throws Exception {
-        if (isConnected())
+        if(isConnected())
             disconnect();
         socket = new Socket();
         socket.connect(new InetSocketAddress(address, port));
@@ -113,13 +116,13 @@ public class MinecraftClient {
         location.y /= ((double) capture.getHeight() / height);
 
         BlockData[] type = new BlockData[width * height];
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
                 BlockData data;
 
                 if(x == location.x && y == location.y) { // Its mouse location
                     data = PaletteLoader.RED;
-                } else {
+                }else {
                     data = palette.matchColor(image.getRGB(x, y));
                 }
 
@@ -149,9 +152,9 @@ public class MinecraftClient {
 
     private void receiveData() {
         try {
-            while (isConnected()) {
+            while(isConnected()) {
                 byte command = input.readByte();
-                switch (command) {
+                switch(command) {
                     case 0:
                         width = input.readInt();
                         height = input.readInt();
@@ -159,6 +162,7 @@ public class MinecraftClient {
                         break;
                     case 1:
                         String message = input.readUTF();
+
                         disconnect();
                         JOptionPane.showMessageDialog(frame, message, "Disconnected:", JOptionPane.INFORMATION_MESSAGE);
                         System.out.println("Server requested disconnect for reason: " + message);
@@ -168,7 +172,7 @@ public class MinecraftClient {
                         break;
                 }
             }
-        } catch (Exception e) {
+        }catch(Exception e) {
             e.printStackTrace();
         }
     }
@@ -176,31 +180,34 @@ public class MinecraftClient {
     private void sendData() {
         try {
             long lastUpdate = System.nanoTime();
-            int ticks = 0;
+            int frames = 0;
             long timer = System.currentTimeMillis();
 
             while(!sendingThread.isInterrupted()) {
                 long now = System.nanoTime();
                 if(lastUpdate + sendingRate < now) {
                     lastUpdate += sendingRate;
-                    if(sendingData)
+                    if(sendingData) {
                         sendOneFrame();
-                    ticks++;
-                } else {
+                        frames++;
+                    }
+                }else {
                     Utils.sleep(1);
                 }
-                if(timer + 1000 < System.currentTimeMillis()) { // One second
+                if(timer + 1000 < System.currentTimeMillis()) { // Every second
                     timer += 1000;
-                    frame.setInfoText(ticks + " FPS (" + Utils.sizeFormat(sendedBytes, "bps") + ")");
-                    ticks = 0;
+                    frame.setInfoText(frames + " FPS (" + Utils.sizeFormat(sendedBytes, "Bps") + ")");
+                    frames = 0;
                     sendedBytes = 0;
                 }
             }
-        } catch (Exception exception) {
+        }catch(Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    public Palette<BlockData> getPalette() { return palette; }
+    public Palette<BlockData> getPalette() {
+        return palette;
+    }
 
 }

@@ -1,2 +1,4 @@
 width: 160
 height: 90
+# Uncomment the line under this one to use a custom data server port
+# serverPort: 12345

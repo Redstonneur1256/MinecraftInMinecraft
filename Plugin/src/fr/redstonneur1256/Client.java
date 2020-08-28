@@ -17,6 +17,7 @@ public class Client extends Thread {
     private Socket socket;
     private DataOutputStream writer;
     private DataInputStream reader;
+
     public Client(Socket socket) throws Exception {
         this.socket = socket;
         this.writer = new DataOutputStream(socket.getOutputStream());
@@ -27,16 +28,15 @@ public class Client extends Thread {
     public void run() {
         MinecraftInMinecraft plugin = JavaPlugin.getPlugin(MinecraftInMinecraft.class);
         try {
-
             while(!socket.isClosed() && !isInterrupted()) {
                 int amount = reader.readInt();
-                while(reader.available() < amount) {
+                while(reader.available() < amount) { // Worst way to do it
                     Utils.sleep(15);
                 }
                 byte[] data = new byte[amount];
 
                 int count = reader.read(data);
-                if (count != amount) {
+                if(count != amount) {
                     System.out.printf("Expected %s bytes of data, found only %s%n", amount, count);
                     continue;
                 }
@@ -49,8 +49,8 @@ public class Client extends Thread {
 
                 int xMax = input.readInt();
                 int yMax = input.readInt();
-                for (int x = 0; x < xMax; x++) {
-                    for (int y = 0; y < yMax; y++) {
+                for(int x = 0; x < xMax; x++) {
+                    for(int y = 0; y < yMax; y++) {
                         int index = x + y * plugin.getWidth();
 
                         int type = input.readInt();
@@ -66,7 +66,7 @@ public class Client extends Thread {
             }
 
 
-        }catch (Exception exception) {
+        }catch(Exception exception) {
             exception.printStackTrace();
         }
     }

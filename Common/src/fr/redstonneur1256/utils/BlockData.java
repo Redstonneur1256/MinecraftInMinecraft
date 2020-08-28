@@ -8,6 +8,7 @@ public class BlockData extends Palette.ColorContainer {
 
     public int type;
     public byte data;
+
     public BlockData(int material, byte data) {
         this(material, data, Color.BLACK);
     }

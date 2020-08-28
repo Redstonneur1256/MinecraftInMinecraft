@@ -1,11 +1,14 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group 'fr.redstonneur1256'
 version '1.0'
 
 sourceSets.main.resources.srcDirs = ["res/"]
+
+shadowJar.archiveFileName = "MinecraftInMinecraft.jar"
 
 repositories {
     mavenCentral()
@@ -15,5 +18,5 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
     compile project(":Common")
-    compile remoteDownload("https://cdn.getbukkit.org/spigot/spigot-1.12.2.jar", "spigot-1.12.2.jar")
+    compileOnly remoteDownload("https://cdn.getbukkit.org/spigot/spigot-1.12.2.jar", "spigot-1.12.2.jar")
 }

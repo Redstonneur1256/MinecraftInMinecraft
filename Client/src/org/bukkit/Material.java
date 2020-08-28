@@ -474,15 +474,27 @@ public enum Material {
     RECORD_12(2267, 1),
     ;
 
-    private final int id;
-    private static Material[] byId = new Material[383];
     private final static Map<String, Material> BY_NAME = new HashMap<>();
+    private static Material[] byId = new Material[383];
+
+    static {
+        for(Material material : values()) {
+            if(byId.length <= material.id) {
+                byId = Arrays.copyOfRange(byId, 0, material.id + 2);
+            }
+            byId[material.id] = material;
+            BY_NAME.put(material.name(), material);
+        }
+    }
+
+    private final int id;
     private final int maxStack;
     private final short durability;
 
     Material(final int id) {
         this(id, 64);
     }
+
     Material(int id, int stack) {
         this(id, stack, 0);
     }
@@ -491,6 +503,65 @@ public enum Material {
         this.id = id;
         this.durability = (short) durability;
         this.maxStack = stack;
+    }
+
+    /**
+     * Attempts to get the Material with the given ID
+     *
+     * @param id ID of the material to get
+     * @return Material if found, or null
+     * @deprecated Magic value
+     */
+    @Deprecated
+    public static Material getMaterial(final int id) {
+        if(byId.length > id && id >= 0) {
+            return byId[id];
+        }else {
+            return null;
+        }
+    }
+
+    /**
+     * Attempts to get the Material with the given name.
+     * <p>
+     * This is a normal lookup, names must be the precise name they are given
+     * in the enum.
+     *
+     * @param name Name of the material to get
+     * @return Material if found, or null
+     */
+    public static Material getMaterial(final String name) {
+        return BY_NAME.get(name);
+    }
+
+    /**
+     * Attempts to match the Material with the given name.
+     * <p>
+     * This is a match lookup; names will be converted to uppercase, then
+     * stripped of special characters in an attempt to format it like the
+     * enum.
+     * <p>
+     * Using this for match by ID is deprecated.
+     *
+     * @param name Name of the material to get
+     * @return Material if found, or null
+     */
+    public static Material matchMaterial(final String name) {
+        Material result = null;
+
+        try {
+            result = getMaterial(Integer.parseInt(name));
+        }catch(NumberFormatException ignored) {
+        }
+
+        if(result == null) {
+            String filtered = name.toUpperCase(java.util.Locale.ENGLISH);
+
+            filtered = filtered.replaceAll("\\s+", "_").replaceAll("\\W", "");
+            result = BY_NAME.get(filtered);
+        }
+
+        return result;
     }
 
     /**
@@ -535,7 +606,7 @@ public enum Material {
      * @return true if this Material is edible.
      */
     public boolean isEdible() {
-        switch (this) {
+        switch(this) {
             case BREAD:
             case CARROT_ITEM:
             case BAKED_POTATO:
@@ -573,74 +644,6 @@ public enum Material {
     }
 
     /**
-     * Attempts to get the Material with the given ID
-     *
-     * @param id ID of the material to get
-     * @return Material if found, or null
-     * @deprecated Magic value
-     */
-    @Deprecated
-    public static Material getMaterial(final int id) {
-        if (byId.length > id && id >= 0) {
-            return byId[id];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Attempts to get the Material with the given name.
-     * <p>
-     * This is a normal lookup, names must be the precise name they are given
-     * in the enum.
-     *
-     * @param name Name of the material to get
-     * @return Material if found, or null
-     */
-    public static Material getMaterial(final String name) {
-        return BY_NAME.get(name);
-    }
-
-    /**
-     * Attempts to match the Material with the given name.
-     * <p>
-     * This is a match lookup; names will be converted to uppercase, then
-     * stripped of special characters in an attempt to format it like the
-     * enum.
-     * <p>
-     * Using this for match by ID is deprecated.
-     *
-     * @param name Name of the material to get
-     * @return Material if found, or null
-     */
-    public static Material matchMaterial(final String name) {
-        Material result = null;
-
-        try {
-            result = getMaterial(Integer.parseInt(name));
-        } catch (NumberFormatException ignored) {}
-
-        if (result == null) {
-            String filtered = name.toUpperCase(java.util.Locale.ENGLISH);
-
-            filtered = filtered.replaceAll("\\s+", "_").replaceAll("\\W", "");
-            result = BY_NAME.get(filtered);
-        }
-
-        return result;
-    }
-
-    static {
-        for (Material material : values()) {
-            if (byId.length <= material.id) {
-                byId = Arrays.copyOfRange(byId, 0, material.id + 2);
-            }
-            byId[material.id] = material;
-            BY_NAME.put(material.name(), material);
-        }
-    }
-
-    /**
      * @return True if this material represents a playable music disk.
      */
     public boolean isRecord() {
@@ -653,10 +656,10 @@ public enum Material {
      * @return True if this material is a block and solid
      */
     public boolean isSolid() {
-        if (!isBlock() || id == 0) {
+        if(!isBlock() || id == 0) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case STONE:
             case GRASS:
             case DIRT:
@@ -868,10 +871,10 @@ public enum Material {
      * @return True if this material is a block and does not block any light
      */
     public boolean isTransparent() {
-        if (!isBlock()) {
+        if(!isBlock()) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case AIR:
             case SAPLING:
             case POWERED_RAIL:
@@ -934,10 +937,10 @@ public enum Material {
      * @return True if this material is a block and can catch fire
      */
     public boolean isFlammable() {
-        if (!isBlock()) {
+        if(!isBlock()) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case WOOD:
             case LOG:
             case LEAVES:
@@ -1005,10 +1008,10 @@ public enum Material {
      * @return True if this material is a block and can burn away
      */
     public boolean isBurnable() {
-        if (!isBlock()) {
+        if(!isBlock()) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case WOOD:
             case LOG:
             case LEAVES:
@@ -1058,7 +1061,7 @@ public enum Material {
      * @return true if this Material can be used as fuel.
      */
     public boolean isFuel() {
-        switch (this) {
+        switch(this) {
             case LAVA_BUCKET:
             case COAL_BLOCK:
             case BLAZE_ROD:
@@ -1136,10 +1139,10 @@ public enum Material {
      * @return True if this material is a block and completely blocks vision
      */
     public boolean isOccluding() {
-        if (!isBlock()) {
+        if(!isBlock()) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case STONE:
             case GRASS:
             case DIRT:
@@ -1248,10 +1251,10 @@ public enum Material {
      * @return True if this material is affected by gravity.
      */
     public boolean hasGravity() {
-        if (!isBlock()) {
+        if(!isBlock()) {
             return false;
         }
-        switch (this) {
+        switch(this) {
             case SAND:
             case GRAVEL:
             case ANVIL:
@@ -1268,7 +1271,7 @@ public enum Material {
      * @return true if this material is an item
      */
     public boolean isItem() {
-        switch (this) {
+        switch(this) {
             case ACACIA_DOOR:
             case BED_BLOCK:
             case BEETROOT_BLOCK:

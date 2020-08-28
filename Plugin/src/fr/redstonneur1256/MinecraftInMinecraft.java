@@ -4,6 +4,7 @@ import fr.redstonneur1256.commands.ConfigCommand;
 import fr.redstonneur1256.redutilities.io.compression.Compression;
 import fr.redstonneur1256.utils.BlockData;
 import fr.redstonneur1256.utils.SocketAcceptThread;
+import fr.redstonneur1256.utils.Vars;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,21 +30,22 @@ public class MinecraftInMinecraft extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        Compression.setMethod(Compression.Method.ZLIB);
-        Compression.setThreadSafe(true); // Clients can be a bit glitchy, just to be safe.
+        Compression.setMethod(Compression.Method.zLib);
+        Compression.setThreadSafe(false);
         Compression.setBufferSize(8129);
 
         saveDefaultConfig();
+        FileConfiguration config = getConfig();
 
         reloadConfig();
 
         getCommand("config").setExecutor(new ConfigCommand());
 
         try {
-            server = new ServerSocket(12346); // TODO: Add custom port configuration
+            server = new ServerSocket(config.getInt("port", Vars.defaultPort));
             SocketAcceptThread thread = new SocketAcceptThread(server, this::setSocket);
             thread.start();
-        } catch (IOException e) {
+        }catch(Exception e) {
             e.printStackTrace();
         }
 
@@ -51,11 +53,9 @@ public class MinecraftInMinecraft extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        saveConfig();
-
         try {
             server.close();
-        } catch (Exception e) {
+        }catch(Exception e) {
             e.printStackTrace();
         }
 
@@ -70,13 +70,13 @@ public class MinecraftInMinecraft extends JavaPlugin {
         height = config.getInt("height");
 
         blockData = new BlockData[width * height];
-        for (int i = 0; i < blockData.length; i++) {
+        for(int i = 0; i < blockData.length; i++) {
             blockData[i] = new BlockData(0, (byte) 0);
         }
 
         updateOrder = new ArrayList<>();
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
                 updateOrder.add(new Point(x, y));
             }
         }
@@ -91,7 +91,7 @@ public class MinecraftInMinecraft extends JavaPlugin {
         if(client != null) {
             try {
                 client.changeSize(width, height);
-            } catch (IOException e) {
+            }catch(IOException e) {
                 e.printStackTrace();
             }
         }
@@ -101,7 +101,7 @@ public class MinecraftInMinecraft extends JavaPlugin {
         if(client != null) {
             try {
                 client.disconnect("Another socket connected");
-            } catch (IOException e) {
+            }catch(IOException e) {
                 e.printStackTrace();
             }
         }
@@ -113,8 +113,8 @@ public class MinecraftInMinecraft extends JavaPlugin {
     public void clearBlocks() {
         World world = Bukkit.getWorld("world");
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
                 world.getBlockAt(x, 1, y).setType(Material.AIR);
             }
         }
@@ -123,10 +123,10 @@ public class MinecraftInMinecraft extends JavaPlugin {
     public void updateBlocks() {
         World world = Bukkit.getWorld("world");
 
-        for (Point point : updateOrder) {
+        for(Point point : updateOrder) {
             setBlock(world, point.x, point.y);
         }
-     }
+    }
 
     private void setBlock(World world, int x, int y) {
         int index = x + y * width;
@@ -143,10 +143,21 @@ public class MinecraftInMinecraft extends JavaPlugin {
             block.setData(data.data);
     }
 
-    public void setBlocks(BlockData[] blockData) { this.blockData = blockData; }
-    public BlockData[] getBlockData() { return blockData; }
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+    public void setBlocks(BlockData[] blockData) {
+        this.blockData = blockData;
+    }
+
+    public BlockData[] getBlockData() {
+        return blockData;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 
 
 }

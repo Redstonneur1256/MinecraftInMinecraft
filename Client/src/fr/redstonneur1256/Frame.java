@@ -2,6 +2,7 @@ package fr.redstonneur1256;
 
 import fr.redstonneur1256.redutilities.graphics.WindowMover;
 import fr.redstonneur1256.redutilities.graphics.swing.PlaceHolderTextField;
+import fr.redstonneur1256.utils.Vars;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,10 +17,11 @@ public class Frame extends JFrame {
     private JButton sendOneFrame;
     private JSpinner updatesSecond;
     private JLabel infoLabel;
-    public Frame(MinecraftClient client) {
+
+    public Frame(MinecraftClient client, int screenWidth, int screenHeight) {
         this.client = client;
 
-        double ratio = 9.0 / 16.0;
+        double ratio = screenHeight / (double) screenWidth;
         int width = 450; // Use custom width
         int height = (int) (width * ratio * 3 + 40);
 
@@ -45,7 +47,7 @@ public class Frame extends JFrame {
         sendData.addChangeListener(event -> {
             if(sendData.isSelected()) {
                 client.startSending();
-            } else {
+            }else {
                 client.stopSending();
             }
         });
@@ -56,7 +58,7 @@ public class Frame extends JFrame {
         sendOneFrame.addActionListener(event -> {
             try {
                 client.sendOneFrame();
-            } catch (Exception e) {
+            }catch(Exception e) {
                 e.printStackTrace();
             }
         });
@@ -102,18 +104,30 @@ public class Frame extends JFrame {
 
     private void connect() {
         try {
-            if (client.isConnected()) {
+            if(client.isConnected()) {
                 client.disconnect();
                 connectButton.setText("Connect");
                 enableFields(false);
-            } else {
-                client.connect(addressField.getText(), 12346); // TODO: Add custom port configuration
+            }else {
+                String text = addressField.getText();
+                String address;
+                int port;
+                if(text.indexOf(':') != -1) {
+                    String[] parts = text.split(":");
+                    address = parts[0];
+                    port = Integer.parseInt(parts[1]);
+                }else {
+                    address = text;
+                    port = Vars.defaultPort;
+                }
+
+                client.connect(address, port);
                 connectButton.setText("Disconnect");
                 enableFields(true);
 
                 client.setSendingSpeed(5);
             }
-        } catch (Exception exception) {
+        }catch(Exception exception) {
             exception.printStackTrace();
         }
     }
@@ -131,7 +145,7 @@ public class Frame extends JFrame {
         int width = getWidth();
         int height = (int) (width * ratio);
 
-        for (int i = 0; i < images.length; i++) {
+        for(int i = 0; i < images.length; i++) {
             int y = 40 + height * i;
             graphics.drawImage(images[i], 0, y, width, height, null);
         }
@@ -143,12 +157,32 @@ public class Frame extends JFrame {
         infoLabel.setText(text);
     }
 
-    public MinecraftClient getClient() { return client; }
-    public PlaceHolderTextField getAddressField() { return addressField; }
-    public JButton getConnectButton() { return connectButton; }
-    public JCheckBox getSendData() { return sendData; }
-    public JButton getSendOneFrame() { return sendOneFrame; }
-    public JSpinner getUpdatesSecond() { return updatesSecond; }
-    public JLabel getInfoLabel() { return infoLabel; }
+    public MinecraftClient getClient() {
+        return client;
+    }
+
+    public PlaceHolderTextField getAddressField() {
+        return addressField;
+    }
+
+    public JButton getConnectButton() {
+        return connectButton;
+    }
+
+    public JCheckBox getSendData() {
+        return sendData;
+    }
+
+    public JButton getSendOneFrame() {
+        return sendOneFrame;
+    }
+
+    public JSpinner getUpdatesSecond() {
+        return updatesSecond;
+    }
+
+    public JLabel getInfoLabel() {
+        return infoLabel;
+    }
 
 }
