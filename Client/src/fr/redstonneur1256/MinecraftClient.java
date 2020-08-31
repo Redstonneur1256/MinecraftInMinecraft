@@ -22,6 +22,8 @@ public class MinecraftClient {
     private Robot robot;
     private Palette<BlockData> palette;
     private Rectangle screenRectangle;
+    private int[] oldColors;
+    private BlockData[] oldData;
     private int width, height;
     private double ratio;
     private Socket socket;
@@ -38,11 +40,13 @@ public class MinecraftClient {
 
         frame = new Frame(this, size.width, size.height);
         robot = new Robot();
-        palette = new Palette<BlockData>().useCache(true);
+        palette = new Palette<>(PaletteLoader.air).useCache(true);
         screenRectangle = new Rectangle(0, 0, size.width, size.height);
+        oldColors = new int[0];
+        oldData = new BlockData[0];
 
-        PaletteLoader paletteLoader = new PaletteLoader(palette);
-        paletteLoader.loadPalette(new File("defaultPack")); // TODO: Add option to allow users to choose pack
+        PaletteLoader paletteLoader = new PaletteLoader(new File("defaultPack"), palette);
+        paletteLoader.loadPalette();
     }
 
     public static void main(String[] args) throws Exception {
@@ -115,18 +119,35 @@ public class MinecraftClient {
         location.x /= ((double) capture.getWidth() / width);
         location.y /= ((double) capture.getHeight() / height);
 
-        BlockData[] type = new BlockData[width * height];
+        int count = width * height;
+        if(oldColors.length != count) {
+            oldColors = new int[count];
+        }
+        if(oldData.length != count) {
+            oldData = new BlockData[count];
+        }
+
+        BlockData[] type = new BlockData[count];
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
                 BlockData data;
+                int index = x + y * width;
 
                 if(x == location.x && y == location.y) { // Its mouse location
-                    data = PaletteLoader.RED;
+                    data = PaletteLoader.red;
                 }else {
-                    data = palette.matchColor(image.getRGB(x, y));
+                    int rgb = image.getRGB(x, y);
+                    int oldRgb = oldColors[index];
+                    if(rgb == oldRgb && oldData[index] != null) {
+                        data = oldData[index];
+                    }else {
+                        data = palette.matchColor(image.getRGB(x, y));
+                        oldData[index] = data;
+                        oldColors[index] = rgb;
+                    }
                 }
 
-                type[x + y * width] = data;
+                type[index] = data;
 
                 dataOutput.writeInt(data.type);
                 dataOutput.writeByte(data.data);

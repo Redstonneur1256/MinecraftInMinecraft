@@ -58,7 +58,7 @@ public class MinecraftInMinecraft extends JavaPlugin {
         }catch(Exception e) {
             e.printStackTrace();
         }
-
+        clearBlocks();
     }
 
     @Override

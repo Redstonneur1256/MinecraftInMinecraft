@@ -15,69 +15,29 @@ import java.util.List;
 
 public class PaletteLoader {
 
-    public static final BlockData AIR;
-    public static final BlockData BLACK;
-    public static final BlockData RED;
-    private static final List<String> BLOCK_COLORS;
+    public static final BlockData air;
+    public static final BlockData red;
+    private static final List<String> blockColors;
+    private static final int badColor;
 
     static {
-        AIR = new BlockData(Material.AIR.getId(), (byte) 0, Color.WHITE);
-        BLACK = new BlockData(Material.CONCRETE.getId(), (byte) 15, Color.BLACK);
-        RED = new BlockData(Material.CONCRETE.getId(), (byte) 14, Color.RED);
+        air = new BlockData(Material.AIR.getId(), (byte) 0, Color.WHITE);
+        red = new BlockData(Material.CONCRETE.getId(), (byte) 14, Color.RED);
 
-        BLOCK_COLORS = Arrays.asList("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
+        blockColors = Arrays.asList("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
                 "silver", "cyan", "purple", "blue", "brown", "green", "red", "black");
+        badColor = 0x80000000;
     }
-
+    
+    private File minecraftFolder;
     private Palette<BlockData> palette;
 
-    public PaletteLoader(Palette<BlockData> palette) {
+    public PaletteLoader(File minecraftFolder, Palette<BlockData> palette) {
+        this.minecraftFolder = minecraftFolder;
         this.palette = palette;
     }
 
-    private static int readTexture(String textureFile, File minecraftFolder) {
-        textureFile = textureFile.toLowerCase();
-
-        int color = Color.BLACK.getRGB();
-        try {
-            InputStream reader = new FileInputStream(new File(minecraftFolder, "blocks/" + textureFile));
-            BufferedImage image = ImageIO.read(reader);
-
-            int red = 0;
-            int green = 0;
-            int blue = 0;
-
-            for(int x = 0; x < image.getWidth(); x++) {
-                for(int y = 0; y < image.getHeight(); y++) {
-                    int rgb = image.getRGB(x, y);
-                    int a = (rgb >> 24) & 0xFF;
-                    if(a != 255) {
-                        System.out.println("Skipping " + textureFile + " because it contains a non alpha 255 pixel");
-                        return Color.WHITE.getRGB();
-                    }
-
-                    red += (rgb >> 16) & 0xFF;
-                    green += (rgb >> 8) & 0xFF;
-                    blue += rgb & 0xFF;
-
-                }
-            }
-
-            float size = (image.getWidth() * image.getHeight());
-
-            red = (int) Math.floor(red / size);
-            green = (int) Math.floor(green / size);
-            blue = (int) Math.floor(blue / size);
-
-            color = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-
-        }catch(Exception e) {
-            //System.out.println("Failed to read " + textureFile + " -> " + e);
-        }
-        return color;
-    }
-
-    public void loadPalette(File minecraftFolder) {
+    public void loadPalette() {
         System.out.println("Loading blocks color list...");
         long start = System.currentTimeMillis();
 
@@ -104,16 +64,16 @@ public class PaletteLoader {
             }
 
             if(colored.contains(material)) {
-                addColoredMaterial(material, minecraftFolder);
+                addColoredMaterial(material);
             }else {
-                addMaterial(material, minecraftFolder);
+                addMaterial(material);
             }
         }
 
-        addColoredMaterial(Material.CONCRETE, minecraftFolder);
-        addColoredMaterial(Material.CONCRETE_POWDER, minecraftFolder);
-        addColoredMaterial(Material.STAINED_CLAY, "hardened_clay_stained", minecraftFolder);
-        addColoredMaterial(Material.WOOL, "wool_colored", minecraftFolder);
+        addColoredMaterial(Material.CONCRETE);
+        addColoredMaterial(Material.CONCRETE_POWDER);
+        addColoredMaterial(Material.STAINED_CLAY, "hardened_clay_stained");
+        addColoredMaterial(Material.WOOL, "wool_colored");
 
         long end = System.currentTimeMillis();
         long time = end - start;
@@ -126,24 +86,69 @@ public class PaletteLoader {
         System.out.printf("Loaded %s block/color materials from %s in %s%n", palette.getColors().size(), minecraftFolder, timeFormat);
     }
 
-    private void addMaterial(Material material, File minecraftFolder) {
-        addMaterial(material, 0, material.name() + ".png", minecraftFolder);
+    private void addMaterial(Material material) {
+        addMaterial(material, 0, material.name() + ".png");
     }
 
-    private void addMaterial(Material material, int data, String textureFile, File minecraftFolder) {
-        int color = readTexture(textureFile, minecraftFolder);
+    private void addMaterial(Material material, int data, String textureFile) {
+        File file = new File(minecraftFolder, "blocks/" + textureFile);
+        if(!file.exists())
+            return;
+        int color = readTexture(file);
+        if(color == badColor)
+            return;
         palette.addColor(new BlockData(material.getId(), (byte) data, new Color(color)));
     }
 
-    private void addColoredMaterial(Material material, File minecraftFolder) {
-        addColoredMaterial(material, material.name().toLowerCase(), minecraftFolder);
+    private void addColoredMaterial(Material material) {
+        addColoredMaterial(material, material.name().toLowerCase());
     }
 
-    private void addColoredMaterial(Material material, String name, File minecraftFolder) {
-        for(int i = 0; i < BLOCK_COLORS.size(); i++) {
-            String textureFile = name + "_" + BLOCK_COLORS.get(i) + ".png";
-            addMaterial(material, i, textureFile, minecraftFolder);
+    private void addColoredMaterial(Material material, String name) {
+        for(int i = 0; i < blockColors.size(); i++) {
+            String textureFile = name + "_" + blockColors.get(i) + ".png";
+            addMaterial(material, i, textureFile);
         }
+    }
+
+    private static int readTexture(File file) {
+        int color = badColor;
+        try {
+            InputStream reader = new FileInputStream(file);
+            BufferedImage image = ImageIO.read(reader);
+
+            int red = 0;
+            int green = 0;
+            int blue = 0;
+
+            for(int x = 0; x < image.getWidth(); x++) {
+                for(int y = 0; y < image.getHeight(); y++) {
+                    int rgb = image.getRGB(x, y);
+                    int a = (rgb >> 24) & 0xFF;
+                    if(a != 255) { // Avoid materials like glass because color result will be depend on block under him
+                        System.out.println("Skipping " + file + " because it contains a non alpha 255 pixel");
+                        return badColor;
+                    }
+
+                    red += (rgb >> 16) & 0xFF;
+                    green += (rgb >> 8) & 0xFF;
+                    blue += rgb & 0xFF;
+
+                }
+            }
+
+            float size = (image.getWidth() * image.getHeight());
+
+            red = (int) Math.floor(red / size);
+            green = (int) Math.floor(green / size);
+            blue = (int) Math.floor(blue / size);
+
+            color = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
+
+        }catch(Exception e) {
+            //System.out.println("Failed to read " + textureFile + " -> " + e);
+        }
+        return color;
     }
 
 }
